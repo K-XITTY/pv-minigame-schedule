@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🐻 PlayVille Schedule</title>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🐻 PlayVille Minigame Schedule</h1>
+  <label for="tz">Select your timezone:</label>
+  <select id="tz"></select>
+  <div id="schedule"></div>
+
+  <script>
+    const { DateTime } = luxon;
+    const SERVER_TZ = "America/Denver";
+
+    const events = {
+      "AB Quiz": {
+        class: "abquiz",
+        days: {
+          Monday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
+          Thursday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
+          Sunday: ["06:10","12:10","18:10"]
+        }
+      },
+      "Memory Match": {
+        class: "memory",
+        days: {
+          Tuesday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
+          Friday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
+          Sunday: ["08:10","14:10","20:10"]
+        }
+      },
+      "Boat Race": {
+        class: "boat",
+        days: {
+          Wednesday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
+          Saturday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
+          Sunday: ["10:10","16:10","22:10"]
+        }
+      }
+    };
+
+    // Populate timezone dropdown
+    const tzSelect = document.getElementById("tz");
+    const zones = Intl.supportedValuesOf("timeZone");
+    zones.forEach(z => {
+      const opt = document.createElement("option");
+      opt.value = z;
+      opt.textContent = z;
+      tzSelect.appendChild(opt);
+    });
+    tzSelect.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    function renderSchedule() {
+      const tz = tzSelect.value;
+      const container = document.getElementById("schedule");
+      container.innerHTML = "";
+      for (const [event, info] of Object.entries(events)) {
+        const div = document.createElement("div");
+        div.className = `event ${info.class}`;
+        div.innerHTML = `<h2>${event}</h2>`;
+        for (const [day, times] of Object.entries(info.days)) {
+          const dayDiv = document.createElement("div");
+          dayDiv.className = "day";
+          dayDiv.textContent = day;
+          div.appendChild(dayDiv);
+          times.forEach(t => {
+            const [hour, minute] = t.split(":").map(Number);
+            const serverTime = DateTime.fromObject({ hour, minute }, { zone: SERVER_TZ });
+            const localTime = serverTime.setZone(tz);
+            const timeDiv = document.createElement("div");
+            timeDiv.className = "time";
+            timeDiv.textContent = `${localTime.toFormat("HH:mm")} (${localTime.toFormat("h:mm a")})`;
+            div.appendChild(timeDiv);
+          });
+        }
+        container.appendChild(div);
+      }
+    }
+
+    tzSelect.addEventListener("change", renderSchedule);
+    renderSchedule();
+  </script>
+</body>
+</html>

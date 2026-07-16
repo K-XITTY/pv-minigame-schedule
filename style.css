@@ -1,0 +1,9 @@
+body { font-family: Verdana, sans-serif; background: #111; color: #eee; padding: 20px; }
+h1 { color: #ffcc00; }
+.event { margin-bottom: 20px; }
+.abquiz { color: #ffd700; }
+.memory { color: #00ff7f; }
+.boat { color: #1e90ff; }
+.day { font-weight: bold; margin-top: 5px; }
+.time { margin-left: 15px; display: block; }
+select { margin: 10px 0; padding: 5px; }
