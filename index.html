@@ -10,40 +10,53 @@
   <h1>🐻 PlayVille Minigame Schedule</h1>
   <label for="tz">Select your timezone:</label>
   <select id="tz"></select>
-  <div id="schedule"></div>
+  <button id="reset">Reset to MST</button>
+
+  <!-- Today's Events + Clock -->
+  <h2>🎯 Today’s Events</h2>
+  <div class="today-container">
+    <div id="today"></div>
+    <canvas id="clock" width="250" height="250"></canvas>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <span class="abquiz">■ AB Quiz</span>
+    <span class="memorymatch">■ Memory Match</span>
+    <span class="boatrace">■ Boat Race</span>
+  </div>
+
+  <!-- 1x3 container -->
+  <div class="container">
+    <div id="abquiz" class="event abquiz"></div>
+    <div id="memorymatch" class="event memorymatch"></div>
+    <div id="boatrace" class="event boatrace"></div>
+  </div>
+
+  <!-- Calendar view -->
+  <h2>📅 Weekly Calendar</h2>
+  <table id="calendar">
+    <thead>
+      <tr>
+        <th>Day</th>
+        <th>AB Quiz</th>
+        <th>Memory Match</th>
+        <th>Boat Race</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
     const { DateTime } = luxon;
     const SERVER_TZ = "America/Denver";
 
     const events = {
-      "AB Quiz": {
-        class: "abquiz",
-        days: {
-          Monday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
-          Thursday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
-          Sunday: ["06:10","12:10","18:10"]
-        }
-      },
-      "Memory Match": {
-        class: "memory",
-        days: {
-          Tuesday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
-          Friday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
-          Sunday: ["08:10","14:10","20:10"]
-        }
-      },
-      "Boat Race": {
-        class: "boat",
-        days: {
-          Wednesday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
-          Saturday: ["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"],
-          Sunday: ["10:10","16:10","22:10"]
-        }
-      }
+      "AB Quiz": { id: "abquiz", days: { Monday:["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"], Thursday:["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"], Sunday:["06:10","12:10","18:10"] }},
+      "Memory Match": { id: "memorymatch", days: { Tuesday:["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"], Friday:["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"], Sunday:["08:10","14:10","20:10"] }},
+      "Boat Race": { id: "boatrace", days: { Wednesday:["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"], Saturday:["06:10","08:10","10:10","12:10","14:10","16:10","18:10","20:10","22:10"], Sunday:["10:10","16:10","22:10"] }}
     };
 
-    // Populate timezone dropdown
     const tzSelect = document.getElementById("tz");
     const zones = Intl.supportedValuesOf("timeZone");
     zones.forEach(z => {
@@ -52,37 +65,134 @@
       opt.textContent = z;
       tzSelect.appendChild(opt);
     });
-    tzSelect.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    tzSelect.value = localStorage.getItem("pv_timezone") || "America/Denver";
+
+    function convertTimes(times, tz) {
+      return times.map(t => {
+        const [hour, minute] = t.split(":").map(Number);
+        const serverTime = DateTime.fromObject({ hour, minute }, { zone: SERVER_TZ });
+        const localTime = serverTime.setZone(tz);
+        return `${localTime.toFormat("HH:mm")} (${localTime.toFormat("h:mm a")})`;
+      });
+    }
 
     function renderSchedule() {
       const tz = tzSelect.value;
-      const container = document.getElementById("schedule");
-      container.innerHTML = "";
+      localStorage.setItem("pv_timezone", tz);
+
+      // Columns
       for (const [event, info] of Object.entries(events)) {
-        const div = document.createElement("div");
-        div.className = `event ${info.class}`;
+        const div = document.getElementById(info.id);
         div.innerHTML = `<h2>${event}</h2>`;
         for (const [day, times] of Object.entries(info.days)) {
-          const dayDiv = document.createElement("div");
-          dayDiv.className = "day";
-          dayDiv.textContent = day;
-          div.appendChild(dayDiv);
-          times.forEach(t => {
-            const [hour, minute] = t.split(":").map(Number);
-            const serverTime = DateTime.fromObject({ hour, minute }, { zone: SERVER_TZ });
-            const localTime = serverTime.setZone(tz);
-            const timeDiv = document.createElement("div");
-            timeDiv.className = "time";
-            timeDiv.textContent = `${localTime.toFormat("HH:mm")} (${localTime.toFormat("h:mm a")})`;
-            div.appendChild(timeDiv);
+          div.innerHTML += `<div class="day">${day}</div>`;
+          convertTimes(times, tz).forEach(t => {
+            div.innerHTML += `<div class="time">${t}</div>`;
           });
         }
-        container.appendChild(div);
+      }
+
+      // Calendar
+      const tbody = document.querySelector("#calendar tbody");
+      tbody.innerHTML = "";
+      const daysOfWeek = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+      daysOfWeek.forEach(day => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${day}</td>`;
+        ["AB Quiz","Memory Match","Boat Race"].forEach(event => {
+          const times = events[event].days[day] || [];
+          const converted = convertTimes(times, tz).join("<br>");
+          const td = document.createElement("td");
+          td.className = events[event].id;
+          td.innerHTML = converted || "-";
+          row.appendChild(td);
+        });
+        tbody.appendChild(row);
+      });
+
+      // Today's events
+      const todayDiv = document.getElementById("today");
+      todayDiv.innerHTML = "";
+      const todayName = DateTime.now().setZone(tz).toFormat("EEEE");
+      todayDiv.innerHTML = `<h3>${todayName}</h3>`;
+      let found = false;
+      const todayEvents = [];
+      for (const [event, info] of Object.entries(events)) {
+        const times = info.days[todayName] || [];
+        if (times.length > 0) {
+          found = true;
+          const eventBlock = document.createElement("div");
+          eventBlock.className = info.id;
+          eventBlock.innerHTML = `<strong>${event}</strong>`;
+          convertTimes(times, tz).forEach(t => {
+            const timeDiv = document.createElement("div");
+            timeDiv.className = "time-slot";
+            timeDiv.textContent = t;
+            eventBlock.appendChild(timeDiv);
+          });
+          todayDiv.appendChild(eventBlock);
+          todayEvents.push({ event, id: info.id, times });
+        }
+      }
+      if (!found) todayDiv.innerHTML += "<div>No events today.</div>";
+
+      // Clock
+      const canvas = document.getElementById("clock");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const centerX = canvas.width/2;
+      const centerY = canvas.height/2;
+      const radius = 100;
+      const colors = { abquiz:"#ffd700", memorymatch:"#00ff7f", boatrace:"#1e90ff" };
+
+      function timeToAngle(timeStr, tz) {
+        const [hour, minute] = timeStr.split(":").map(Number);
+        const serverTime = DateTime.fromObject({ hour, minute }, { zone: SERVER_TZ });
+        const localTime = serverTime.setZone(tz);
+        const h = localTime.hour % 12;
+        const m = localTime.minute;
+        return ((h*60+m)/720)*2*Math.PI - Math.PI/2;
+      }
+
+      todayEvents.forEach(ev => {
+        ev.times.forEach(t => {
+          const angle = timeToAngle(t, tz);
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.arc(centerX, centerY, radius, angle-0.05, angle+0.05);
+          ctx.closePath();
+          ctx.fillStyle = colors[ev.id];
+          ctx.fill();
+        });
+      });
+
+      // Clock outline
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, 2*Math.PI);
+      ctx.strokeStyle = "#eee";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Numbers 1–12
+      ctx.fillStyle = "#eee";
+      ctx.font = "14px Verdana";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (let num=1; num<=12; num++) {
+        const angle = (num/12)*2*Math.PI - Math.PI/2;
+        const x = centerX + Math.cos(angle)*(radius-20);
+        const y = centerY + Math.sin(angle)*(radius-20);
+        ctx.fillText(num.toString(), x, y);
       }
     }
 
     tzSelect.addEventListener("change", renderSchedule);
+    document.getElementById("reset").addEventListener("click", () => {
+      tzSelect.value = "America/Denver";
+      localStorage.removeItem("pv_timezone");
+      renderSchedule();
+    });
+
     renderSchedule();
   </script>
 </body>
-</html>

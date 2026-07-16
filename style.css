@@ -1,9 +1,201 @@
-body { font-family: Verdana, sans-serif; background: #111; color: #eee; padding: 20px; }
-h1 { color: #ffcc00; }
-.event { margin-bottom: 20px; }
+/* General page styling */
+body {
+  font-family: Verdana, sans-serif;
+  background: #111;
+  color: #eee;
+  padding: 20px;
+}
+
+h1 {
+  color: #ffcc00;
+}
+
+/* Timezone selector + reset button */
+select,
+button {
+  margin: 10px 5px 10px 0;
+  padding: 5px 10px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #222;
+  color: #eee;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #333;
+}
+
+/* Legend bar */
+.legend {
+  margin: 10px 0;
+}
+
+.legend span {
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+/* 1x3 container for events */
+.container {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.event {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #1a1a1a;
+}
+
+.day {
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
+}
+
+/* Time pill styling (columns) */
+.time {
+  display: inline-block;
+  margin: 6px 6px 10px 0;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: #222;
+  border: 1px solid #444;
+  font-size: 14px;
+}
+
+.time:hover {
+  background: #333;
+  border-color: #666;
+}
+
+/* Color coding */
 .abquiz { color: #ffd700; }
-.memory { color: #00ff7f; }
-.boat { color: #1e90ff; }
-.day { font-weight: bold; margin-top: 5px; }
-.time { margin-left: 15px; display: block; }
-select { margin: 10px 0; padding: 5px; }
+.memorymatch { color: #00ff7f; }
+.boatrace { color: #1e90ff; }
+
+/* Calendar table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th,
+td {
+  border: 1px solid #444;
+  padding: 12px;
+  text-align: center;
+  vertical-align: top;
+}
+
+th {
+  background: #222;
+}
+
+/* Calendar cell coloring */
+td.abquiz {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+  font-weight: bold;
+  line-height: 1.6;
+}
+
+td.memorymatch {
+  color: #00ff7f;
+  background: rgba(0, 255, 127, 0.15);
+  font-weight: bold;
+  line-height: 1.6;
+}
+
+td.boatrace {
+  color: #1e90ff;
+  background: rgba(30, 144, 255, 0.15);
+  font-weight: bold;
+  line-height: 1.6;
+}
+
+/* Today's events + clock container */
+.today-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+#today {
+  flex: 1;
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #222;
+}
+
+#today h3 {
+  margin-top: 0;
+  color: #ffcc00;
+}
+
+#today div {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: #333;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+/* Each time in today's events stacked vertically */
+#today .time-slot {
+  display: block;
+  margin: 6px 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #222;
+  border: 1px solid #444;
+  font-size: 14px;
+}
+
+/* Differentiate today's events blocks */
+#today .abquiz {
+  background: rgba(255, 215, 0, 0.25);
+  color: #ffd700;
+}
+
+#today .memorymatch {
+  background: rgba(0, 255, 127, 0.25);
+  color: #00ff7f;
+}
+
+#today .boatrace {
+  background: rgba(30, 144, 255, 0.25);
+  color: #1e90ff;
+}
+
+/* Clock styling */
+#clock {
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 50%;
+  margin-top: 20px;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  table {
+    font-size: 12px;
+  }
+  .today-container {
+    flex-direction: column;
+    align-items: center;
+  }
+}
