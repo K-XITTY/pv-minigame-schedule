@@ -12,6 +12,9 @@
   <select id="tz"></select>
   <button id="reset">Reset to MST</button>
 
+  <!-- Next Event -->
+  <div id="next-event"></div>
+
   <!-- Today's Events + Clock -->
   <h2>🎯 Today’s Events</h2>
   <div class="today-container">
@@ -79,6 +82,90 @@
     function renderSchedule() {
       const tz = tzSelect.value;
       localStorage.setItem("pv_timezone", tz);
+
+      // ------------------------
+// Find Next Upcoming Event
+// ------------------------
+
+const now = DateTime.now().setZone(tz);
+
+const weekDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday"
+];
+
+let nextEvent = null;
+
+for (let offset = 0; offset < 7; offset++) {
+
+  const day = now.plus({ days: offset });
+  const dayName = day.toFormat("EEEE");
+
+  for (const [event, info] of Object.entries(events)) {
+
+    const times = info.days[dayName] || [];
+
+    times.forEach(time => {
+
+      const [hour, minute] = time.split(":").map(Number);
+
+      const serverDate = day
+        .setZone(SERVER_TZ)
+        .set({
+          hour,
+          minute,
+          second: 0,
+          millisecond: 0
+        });
+
+      const localDate = serverDate.setZone(tz);
+
+      if (localDate > now) {
+
+        if (!nextEvent || localDate < nextEvent.date) {
+          nextEvent = {
+            event,
+            id: info.id,
+            date: localDate
+          };
+        }
+
+      }
+
+    });
+
+  }
+
+}
+
+if (nextEvent) {
+
+  const diff = nextEvent.date.diff(now, ["hours", "minutes"]).toObject();
+
+  const hours = Math.floor(diff.hours);
+  const minutes = Math.floor(diff.minutes);
+
+  document.getElementById("next-event").innerHTML = `
+    <h2>⏰ Next Upcoming Event</h2>
+
+    <div class="event-name ${nextEvent.id}">
+      ${nextEvent.event}
+    </div>
+
+    <div class="event-time">
+      ${nextEvent.date.toFormat("cccc • h:mm a")}
+    </div>
+
+    <div class="countdown">
+      Starts in ${hours}h ${minutes}m
+    </div>
+  `;
+}
 
       // Columns
       for (const [event, info] of Object.entries(events)) {

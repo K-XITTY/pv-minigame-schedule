@@ -199,3 +199,36 @@ td.boatrace {
     align-items: center;
   }
 }
+
+/* Next upcoming event */
+#next-event {
+  margin: 20px 0;
+  padding: 18px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #252525, #1a1a1a);
+  border: 2px solid #444;
+  text-align: center;
+  box-shadow: 0 0 12px rgba(255,255,255,0.08);
+}
+
+#next-event h2 {
+  margin: 0 0 8px;
+  color: #ffcc00;
+}
+
+#next-event .event-name {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+#next-event .event-time {
+  font-size: 18px;
+  margin-top: 8px;
+  color: #ddd;
+}
+
+#next-event .countdown {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #aaa;
+}
